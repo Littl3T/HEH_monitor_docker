@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+      - ./scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - tig-net
+    restart: unless-stopped
+
+  telegraf:
+    image: telegraf:1.30
+    container_name: telegraf
+    depends_on:
+      - influxdb
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /proc:/host_proc:ro     # allow reading host metrics
+      - /sys:/host_sys:ro
+      - /etc:/host_etc:ro
+    environment:
+      - HOST_PROC=/host_proc
+      - HOST_SYS=/host_sys
+      - HOST_ETC=/host_etc
+    networks:
+      - tig-net
+    restart: unless-stopped
+    # If you do not want host network, remove network_mode and rely on bridge network.
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - influxdb
+    networks:
+      - tig-net
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  grafana-data:
+
+networks:
+  tig-net:
+    driver: bridge

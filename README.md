@@ -83,22 +83,12 @@ HEH_MONITOR_DOCKER/
 docker compose up -d
 ```
 
-### 3. Création de la base de données
-
-```bash
-docker exec -it influxdb influx -execute "CREATE DATABASE telegraf"
-```
-
-### 4. Vérification de la collecte
+### 3. Vérifications
 
 ```bash
 docker logs -f telegraf
-# Doit afficher des lignes: "Wrote batch of X metrics"
-```
+# Doit afficher des lignes : "Wrote batch of X metrics"
 
-### 5. Vérification du stockage
-
-```bash
 docker exec -it influxdb influx -execute "SHOW MEASUREMENTS ON telegraf"
 # Résultat attendu : cpu, mem
 ```
@@ -108,13 +98,14 @@ docker exec -it influxdb influx -execute "SHOW MEASUREMENTS ON telegraf"
 ## Accès à Grafana
 
 Ouvrir : [http://localhost:3000](http://localhost:3000)
+
 **Identifiants par défaut :**
 
 ```
 admin / admin
 ```
 
-La datasource **InfluxDB** est déjà configurée grâce au provisioning :
+Datasource **InfluxDB** auto-provisionnée :
 
 ```yaml
 url: http://influxdb:8086
@@ -125,9 +116,10 @@ database: telegraf
 
 ## Tableau de bord Grafana
 
+Dashboard->Import->Sélectionner *telegraf-cpu-men.json*
 Nom : **MonitoringDashboard**
 
-### Panneaux inclus :
+### Panneaux inclus
 
 1. **CPU** — graphique de l’utilisation moyenne :
 
@@ -145,22 +137,23 @@ Nom : **MonitoringDashboard**
 
 ## Commandes utiles
 
-| Action                     | Commande                           |
-| -------------------------- | ---------------------------------- |
-| Démarrer                   | `docker compose up -d`             |
-| Arrêter                    | `docker compose down`              |
-| Voir les logs d’un service | `docker logs -f <service>`         |
-| Recréer un conteneur       | `docker compose restart <service>` |
-| Supprimer les volumes      | `docker compose down -v`           |
+| Action               | Commande                           |
+| -------------------- | ---------------------------------- |
+| Démarrer             | `docker compose up -d`             |
+| Arrêter              | `docker compose down`              |
+| Logs d’un service    | `docker logs -f <service>`         |
+| Recréer un conteneur | `docker compose restart <service>` |
+| Supprimer volumes    | `docker compose down -v`           |
 
 ---
 
 ## Résumé du fonctionnement
 
 1. **Telegraf** interroge le système toutes les 10 s.
-2. Les métriques sont stockées dans **InfluxDB** (base `telegraf`).
-3. **Grafana** interroge cette base et met à jour le tableau de bord.
-4. L’ensemble fonctionne de manière autonome via **Docker Compose**.
+2. **InfluxDB** crée automatiquement la base `telegraf` au premier démarrage.
+3. Les métriques CPU/Mémoire y sont stockées.
+4. **Grafana** interroge cette base et affiche les graphiques.
+5. Le script `create-influx-db.sh` reste optionnel pour réinitialiser manuellement.
 
 ---
 
@@ -168,8 +161,8 @@ Nom : **MonitoringDashboard**
 
 Projet scolaire réalisé par **Tom Deneyer**
 HEH — Bachelor 3 Informatique
-Versions utilisées :
 
+Versions utilisées :
 * Telegraf : 1.30.3
 * InfluxDB : 1.8.10
 * Grafana : 12.2.1

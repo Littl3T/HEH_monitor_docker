@@ -12,6 +12,8 @@ services:
     networks:
       - tig-net
     restart: unless-stopped
+    environment:
+      - INFLUXDB_DB=telegraf
 
   telegraf:
     image: telegraf:1.30
@@ -30,7 +32,6 @@ services:
     networks:
       - tig-net
     restart: unless-stopped
-    # If you do not want host network, remove network_mode and rely on bridge network.
 
   grafana:
     image: grafana/grafana:latest

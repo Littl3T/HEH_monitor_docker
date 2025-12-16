@@ -1,0 +1,18 @@
+name: Node 18 - Manual
+
+on:
+  workflow_dispatch:
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Node.js 18
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: "18"
+
+      - name: Show versions
+        run: |
+          node -v
+          npm -v

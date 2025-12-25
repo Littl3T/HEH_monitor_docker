@@ -45,7 +45,7 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "gbytes"
         },
         "overrides": []
       },
@@ -55,11 +55,13 @@
         "x": 0,
         "y": 0
       },
-      "id": 3,
+      "id": 4,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -67,21 +69,22 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "query": "SELECT mean(\"used_percent\") FROM \"mem\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "hide": false,
+          "query": "SELECT (last(\"total\") - last(\"available\")) / 1024 / 1024 / 1024\nAS \"RAM utilisée (GiB)\"\nFROM \"mem\"\nWHERE $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
         }
       ],
-      "title": "Memoire",
-      "type": "gauge"
+      "title": "RAM Used",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -147,7 +150,7 @@
       },
       "gridPos": {
         "h": 11,
-        "w": 13,
+        "w": 15,
         "x": 8,
         "y": 0
       },
@@ -168,14 +171,79 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "query": "SELECT mean(\"used_percent\") FROM \"mem\" WHERE $timeFilter GROUP BY time($__interval) fill(null)\n",
+          "query": "SELECT 100 * (mean(\"total\") - mean(\"available\")) / mean(\"total\")\nAS \"RAM utilisée (%)\"\nFROM \"mem\"\nWHERE $timeFilter\nGROUP BY time($__interval) fill(null)\n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
         }
       ],
-      "title": "Mémoire",
+      "title": "RAM Used",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 0,
+        "y": 11
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "hide": false,
+          "query": "SELECT 100 - mean(\"usage_idle\")\nFROM \"cpu\"\nWHERE $timeFilter AND \"cpu\"='cpu-total'\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "CPU Used",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -196,7 +264,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 100,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -205,14 +273,17 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 0,
+            "pointSize": 6,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "showValues": false,
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -241,8 +312,8 @@
       },
       "gridPos": {
         "h": 11,
-        "w": 21,
-        "x": 0,
+        "w": 15,
+        "x": 8,
         "y": 11
       },
       "id": 1,
@@ -266,13 +337,13 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "SELECT mean(\"usage_idle\") FROM \"cpu\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "query": "SELECT 100 - mean(\"usage_idle\")\nFROM \"cpu\"\nWHERE $timeFilter AND \"cpu\"='cpu-total'\nGROUP BY time($__interval) fill(null)\n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
         }
       ],
-      "title": "CPU",
+      "title": "CPU Utilisation",
       "type": "timeseries"
     }
   ],
@@ -283,12 +354,12 @@
     "list": []
   },
   "time": {
-    "from": "2025-11-04T07:51:24.000Z",
-    "to": "2025-11-04T08:45:28.000Z"
+    "from": "now-30m",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "MonitoringDashboard",
-  "uid": "adgqv4p",
-  "version": 5
+  "uid": "adgqv4pl",
+  "version": 11
 }

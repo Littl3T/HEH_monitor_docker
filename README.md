@@ -121,18 +121,37 @@ Nom : **MonitoringDashboard**
 
 ### Panneaux inclus
 
-1. **CPU** — graphique de l’utilisation moyenne :
+1. **CPU (Stat)** — utilisation instantané :
 
    ```sql
-   SELECT mean("usage_idle") FROM "cpu" WHERE $timeFilter GROUP BY time($__interval) fill(null)
+      SELECT 100 - mean("usage_idle")
+      FROM "cpu"
+      WHERE $timeFilter AND "cpu"='cpu-total'
    ```
-2. **Mémoire (graphique)** — évolution temporelle :
+2. **CPU (Time series)** — évolution temporelle consomation cpu en %:
 
    ```sql
-   SELECT mean("used_percent") FROM "mem" WHERE $timeFilter GROUP BY time($__interval) fill(null)
+      SELECT 100 - mean("usage_idle")
+      FROM "cpu"
+      WHERE $timeFilter AND "cpu"='cpu-total'
+      GROUP BY time($__interval) fill(null)
    ```
-3. **Mémoire (jauge)** — pourcentage d’utilisation instantané.
+3. **Mémoire (Stat)** — utilisation instantané.
+   ```sql
+      SELECT (last("total") - last("available")) / 1024 / 1024 / 1024
+      AS "RAM utilisée (GiB)"
+      FROM "mem"
+      WHERE $timeFilter
+   ```
+4. **Mémoire (Time series)** — évolution temporelle consomation mémoire en %:
 
+   ```sql
+      SELECT 100 * (mean("total") - mean("available")) / mean("total")
+      AS "RAM utilisée (%)"
+      FROM "mem"
+      WHERE $timeFilter
+      GROUP BY time($__interval) fill(null)
+   ```
 ---
 
 ## Commandes utiles
